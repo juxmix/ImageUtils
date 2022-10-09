@@ -5,7 +5,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 from pathlib import Path
 from tkinter import Menu, ttk, filedialog as fd
-from ExifImage import ExifImage as ei
+from ExifImageData import ExifImageData as eid
 
 # create logger
 logger = logging.getLogger('MinWindow.py')
@@ -144,7 +144,7 @@ class MainWindow(tk.Frame):
     def select_imagen(self):
         logger.info(self.img_name_var.get())
         #TODO: seleccionar una imágen concreta
-        self._exif_image = ei.load_exif(self.img_name_var.get())
+        #self._exif_image = eid.load_exif(self.img_name_var.get())
 
     def acerca_de(self):
         popup1 = tk.Toplevel(self.master)
