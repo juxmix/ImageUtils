@@ -27,11 +27,9 @@ class MainWindow(tk.Frame):
         super().__init__(master)
 
         self.master = master
-
         master.title("Utilidades de fotos")
-
         # Tamaño inicial de la ventana
-        master.geometry('550x300')
+        master.geometry('550x350')
 
         self.crea_menu(master)
 
@@ -46,47 +44,56 @@ class MainWindow(tk.Frame):
         if seleccion:
             index = seleccion[0]
             nombre = evento.widget.get(index)
+            self.img_name_var.set(nombre)
             logger.info("Img: " + nombre)
             fullname = os.path.join(self.dir_name_var.get(), nombre)
+            logger.debug("FullName: " + fullname)
             load = Image.open(fullname)
-            load.resize((50,50), Image.ANTIALIAS)
+            #load.resize((50, 50), Image.ANTIALIAS)
             load.thumbnail((200, 200))
             render = ImageTk.PhotoImage(load)
             # img = Label(self.master, image = render)
-            self.lbl_thumb = tk.Label(self.master, image=render, height=250, width=250)
+            self.lbl_thumb = tk.Label(self.master, image=render, height=200, width=200)
             self.lbl_thumb.image = render
-            # img.place(x=200, y=200)
             self.lbl_thumb.grid(row=2, column=1, sticky='E', padx=2, pady=2)
 
         else:
             logger.info("Nada seleccionado.")
+            self.img_name_var.set(None)
 
     def crea_widgets(self, master):
-        # Controles de carpeta
-        self.lbl_dir = tk.Label(master, text='Carpeta: ')
-        self.ent_dir = tk.Entry(master, textvariable=self.dir_name_var, width=45)
-        self.btn_dir = tk.Button(master, text='...', command=self.select_carpeta)
+        # Controles de carpeta e imagen en un Frame
+        self.frm_controls = tk.Frame(master)
+        self.lbl_dir = tk.Label(self.frm_controls, text='Carpeta: ')
+        self.ent_dir = tk.Entry(self.frm_controls, textvariable=self.dir_name_var, width=45)
+        self.btn_dir = tk.Button(self.frm_controls, text='...', command=self.select_carpeta)
         self.lbl_dir.grid(row=0, column=0, sticky='W', padx=2, pady=2)
         self.ent_dir.grid(row=0, column=1, sticky='W', pady=2)
         self.btn_dir.grid(row=0, column=2, sticky='E', padx=2, pady=2)
         # Controles de Imagen
-        self.lbl_img = tk.Label(master, text='Imagen:')
-        self.ent_img = tk.Entry(master, textvariable=self.img_name_var, width=45)
-        self.btn_img = tk.Button(master, text='...', command=self.select_imagen)
+        self.lbl_img = tk.Label(self.frm_controls, text='Imagen:')
+        self.ent_img = tk.Entry(self.frm_controls, textvariable=self.img_name_var, width=45)
+        self.btn_img = tk.Button(self.frm_controls, text='...', command=self.select_imagen)
         self.lbl_img.grid(row=1, column=0, sticky='W', padx=2, pady=2)
         self.ent_img.grid(row=1, column=1, sticky='W', padx=2, pady=2)
         self.btn_img.grid(row=1, column=2, sticky='E', padx=2, pady=2)
-        # Listado de ficheros
-        # Crear una barra de deslizamiento con orientación vertical.
-        self.scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL)
-        self.lst_images = tk.Listbox(master, height=10, width=40, yscrollcommand=self.scrollbar.set)
+
+        self.frm_controls.grid(row=0, column=0, columnspan=2, sticky='W', padx=2, pady=2)
+
+        # Listado de ficheros en su propio panel
+        self.frm_lst_images = tk.Frame(self.master)
+        self.lst_images = tk.Listbox(self.frm_lst_images, height=10, width=40)#, yscrollcommand=self.scrollbar.set)
         # activestyle='dotbox')
-        self.scrollbar.config(command=self.lst_images.yview)
-        self.lst_images.grid(row=2, column=0, columnspan=2,
-                             sticky='W', padx=2, pady=2)
+        #self.lst_images.grid(row=2, column=0, columnspan=2, sticky='W', padx=2, pady=2)
+        self.lst_images.pack(side=tk.LEFT)#, padx=2, pady=2)
         self.lst_images.bind("<<ListboxSelect>>", self.lst_callback)
-        #Img thumbnail
-        #Creado al seleccionar una imagen de la lista
+        # Crear una barra de deslizamiento con orientación vertical.
+        self.scrollbar = ttk.Scrollbar(self.frm_lst_images, orient=tk.VERTICAL)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.BOTH)
+        self.lst_images.config(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.config(command=self.lst_images.yview)
+        #self.scrollbar.grid(row=2, column=2, sticky='E')
+        self.frm_lst_images.grid(row=2, column=0, sticky='W')
 
 
     def crea_menu(self, master):
@@ -131,9 +138,12 @@ class MainWindow(tk.Frame):
                 fich_sin_path = os.path.basename(fichero)
                 self.lst_images.insert('end', fich_sin_path)
         # Activar la barra de desplazamiento
+        self.lst_images.config(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.config(command=self.lst_images.yview)
 
     def select_imagen(self):
-        pass
+        logger.info(self.img_name_var.get())
+        #TODO: seleccionar una imágen concreta
 
     def acerca_de(self):
         popup1 = tk.Toplevel(self.master)
