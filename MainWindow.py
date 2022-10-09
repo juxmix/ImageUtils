@@ -4,9 +4,8 @@ import os
 import tkinter as tk
 from PIL import Image, ImageTk
 from pathlib import Path
-from tkinter import Menu
-from tkinter import filedialog as fd
-from tkinter import ttk
+from tkinter import Menu, ttk, filedialog as fd
+from ExifImage import ExifImage as ei
 
 # create logger
 logger = logging.getLogger('MinWindow.py')
@@ -23,6 +22,9 @@ logger.addHandler(ch)
 
 
 class MainWindow(tk.Frame):
+
+    _exif_image = None
+
     def __init__(self, master):
         super().__init__(master)
 
@@ -80,19 +82,19 @@ class MainWindow(tk.Frame):
 
         self.frm_controls.grid(row=0, column=0, columnspan=2, sticky='W', padx=2, pady=2)
 
-        # Listado de ficheros en su propio panel
+        # Listado de ficheros en su propio Frame
         self.frm_lst_images = tk.Frame(self.master)
-        self.lst_images = tk.Listbox(self.frm_lst_images, height=10, width=40)#, yscrollcommand=self.scrollbar.set)
+        self.lst_images = tk.Listbox(self.frm_lst_images, height=10, width=35)#, yscrollcommand=self.scrollbar.set)
         # activestyle='dotbox')
-        #self.lst_images.grid(row=2, column=0, columnspan=2, sticky='W', padx=2, pady=2)
         self.lst_images.pack(side=tk.LEFT)#, padx=2, pady=2)
         self.lst_images.bind("<<ListboxSelect>>", self.lst_callback)
+
         # Crear una barra de deslizamiento con orientación vertical.
         self.scrollbar = ttk.Scrollbar(self.frm_lst_images, orient=tk.VERTICAL)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.BOTH)
         self.lst_images.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.lst_images.yview)
-        #self.scrollbar.grid(row=2, column=2, sticky='E')
+
         self.frm_lst_images.grid(row=2, column=0, sticky='W')
 
 
@@ -104,10 +106,8 @@ class MainWindow(tk.Frame):
         # Creamos el menu de fichero
         self.menu_fichero = Menu(self.barramenu, tearoff=0)
 
-        self.menu_fichero.add_command(label='Carpeta...',
-                                 command=self.select_carpeta)
-        self.menu_fichero.add_command(label='Imagen...',
-                                 command=self.select_imagen)
+        self.menu_fichero.add_command(label='Carpeta...', command=self.select_carpeta)
+        self.menu_fichero.add_command(label='Imagen...', command=self.select_imagen)
         self.menu_fichero.add_separator()
 
         self.menu_fichero.add_command(label='Salir', command=master.destroy)
@@ -144,10 +144,11 @@ class MainWindow(tk.Frame):
     def select_imagen(self):
         logger.info(self.img_name_var.get())
         #TODO: seleccionar una imágen concreta
+        self._exif_image = ei.load_exif(self.img_name_var.get())
 
     def acerca_de(self):
         popup1 = tk.Toplevel(self.master)
         popup1.geometry("400x300")
         popup1.title("Acerca de...")
-        tk.Label(popup1, text="(c) by Juxmix", font=('Mistral 18 bold')).place(x=90,y=50)
+        tk.Label(popup1, text="(c) by Juxmix", font=('Mistral 18 bold')).place(x=90, y=50)
         #print("(c) by Juxmix")
